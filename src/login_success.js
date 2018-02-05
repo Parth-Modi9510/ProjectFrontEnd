@@ -1,7 +1,5 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
-import Modal from 'react-modal'
+import React from 'react'
+import axios from 'axios'
 import Alert from 'react-s-alert'
 import 'react-s-alert/dist/s-alert-default.css';
 import 'react-s-alert/dist/s-alert-css-effects/slide.css';
@@ -11,114 +9,28 @@ import 'react-s-alert/dist/s-alert-css-effects/jelly.css';
 import 'react-s-alert/dist/s-alert-css-effects/stackslide.css';
 import 'react-s-alert/dist/s-alert-css-effects/genie.css';
 import 'react-s-alert/dist/s-alert-css-effects/bouncyflip.css';
-import axios from 'axios';
 
 
-class Header extends React.Component{
-
-    sampleFunction=()=>{
-        this.props.ck();
-    }
-
-    render(){
-        return(
-            <div>
-                <h1>This is Header</h1>
-                <button>Login</button>
-                <button onClick={()=>{
-                    this.sampleFunction()
-                }}>Register</button>
-                <button>About Us</button>
-
-
-
-            </div>
-        )
-    }
-}
-class Footer extends React.Component{
-    render(){
-        return(
-            <h5 style={{textAlign:"center"}}>This website is created by P.M</h5>
-        )
-    }
-}
-
-class Main extends React.Component{
+class Logins extends React.Component{
     constructor(){
         super();
 
-        this.state={
-            id:"",
-            password:"",
-            ModalState:false
+        this.state = {
+            fname:"",
+            lname:"",
+            address:"",
+            city:"",
+            pincode:"",
+            gender:"",
+
+
         }
 
-
     }
 
-    componentWillMount(){
-        Modal.setAppElement('body');
-    }
-
-    toggleChange=()=>{
-        this.setState({
-            ModalState: !this.state.ModalState
-
-        })
-        //alert("asd")
-    }
-
-    onIdChange=(e)=>{
-
-        let a = e.target.placeholder;
-
-        this.setState({
-            [a] : e.target.value
-
-        })
-    }
-    /*onpwdChange=(e)=>{
-        this.state.txtpwd = e.target.value
-        this.setState({
-            txtpwd : this.state.txtpwd
-
-        })
-    }*/
-    submit = (e)=>{
-
-        axios.post('http://localhost:2525/users/login',{
-            username:this.state.id,
-            password:this.state.password
-        }).then((response)=>{
-            console.log(response);
-            if(response.data){
-                this.success(e);
-            }
-            else
-            {
-                this.unsuccess(e);
-            }
-        }).catch((e)=>{
-            console.log(e);
-        });
-
-        /*if(this.state.id === "admin" && this.state.password === "admin")
-        {
-            //alert("Login Successfull")
-            this.handleClick1(e);
-        }
-        else
-        {
-            //alert("Login UnSuccessFull")
-            this.handleClick2(e);
-        }*/
-    };
-
-
-    unsuccess(e){
+    unsuccess(e,msg){
         e.preventDefault();
-        Alert.error('Login UnSuccessfull..!!',{
+        Alert.error(msg,{
             position:'top-right',
             effect:'bouncyflip',
             beep:true,
@@ -129,9 +41,10 @@ class Main extends React.Component{
 
 
 
-    success(e) {
+    success(e,msg) {
         e.preventDefault();
-        Alert.success('Login Successfull..!!', {
+
+        Alert.success(msg, {
             position: 'top-right',
             effect: 'scale',
             beep: true,
@@ -140,35 +53,117 @@ class Main extends React.Component{
         });
     }
 
+    submit=(e)=>{
 
+        axios({
+            method: 'post',
+            url: 'http://localhost:2525/users/login/personalInfo',
+            data: {
+                "First_Name":this.state.fname,
+                "Last_Name":this.state.lname,
+                "Address":this.state.address,
+                "city":this.state.city,
+                "pincode":this.state.pincode,
+                "gender":this.state.gender
+            },
+            crossDomain : true,
+            withCredentials: true
+        }).then((response)=>{
+            console.log(`response:`,response);
+            if(response.data){
+
+                localStorage.setItem('abc123',JSON.stringify(response.data));
+                this.success(e,'Data Inserted...');
+                //this.props.history.push('/login_success');
+            }
+            else
+            {
+                this.unsuccess(e,'Data Not inserted...');
+            }
+        }).catch((e)=>{
+            console.log(e);
+        });
+    };
 
     render(){
         return(
+            <section>
 
-            <div style={{textAlign:"center"}}>
+                <fieldset>
+                    <h1>Personal Information</h1>
+                    <div className="col-lg-4">
+                        <form onSubmit={(e)=>{e.preventDefault();}} className="form-horizontal" action="" method="post">
+                            <div className="form-group">
+                                <input className="form-control" type="text" placeholder="FirstName" ref="fname" id="fname"/>
+                            </div>
+                            <div className="form-group">
+                                <input className="form-control" type="text" placeholder="LastName" ref="lname" id="lname"/>
+                            </div>
 
 
+                            <div className="form-group">
+                                <input  type="radio" ref="radioF" name="radioG" value="Female" id="txtradioF"/>Female
+                                <input  type="radio" ref="radioM" name="radioG" value="Male" id="txtradioM"/>Male
+                            </div>
+                            <div className="form-group">
+                                <label>City</label>
+                                <select className="form-control" ref="selectcity" id="selectcity" cols="35" width="450">
+                                    <option value="Surat">Surat</option>
+                                    <option value="Baroda">Baroda</option>
+                                    <option value="Anand">Anand</option>
+                                </select>
+                            </div>
 
-                <Header ck={this.toggleChange} />
+                            <div className="form-group">
+                                <textarea className="innput" placeholder="Address" ref="txtaddress" id="txtaddress" cols="35" width="450" />
+                            </div>
+                            <div className="form-group">
+                                <input className="form-control" type="text" placeholder="PinCode" ref="txtpincode" id="txtpincode"/>
+                            </div>
+                            <div>
+                                <input className="btn btn-success" type="submit" value="Save"
+                                       onClick={(e)=>{
+                                           let r='';
+                                           if(document.getElementById('txtradioF').checked)
+                                           {
+                                               r=document.getElementById('txtradioF').value;
+                                           }
+                                           if(document.getElementById('txtradioM').checked)
+                                           {
+                                               r=document.getElementById('txtradioM').value;
+                                           }
+                                           let c='';
+                                           if(document.getElementById('selectcity').checked===true)
+                                           {
+                                               c='Y';
+                                           }
+                                           else
+                                           {
+                                               c='N';
+                                           }
+                                           this.setState({
+                                                   fname:document.getElementById('fname').value,
+                                                   lname:document.getElementById('lname').value,
+                                                   gender:r,
+                                                   city:document.getElementById('selectcity').value,
+                                                   address:document.getElementById('txtaddress').value,
+                                                    pincode:document.getElementById('txtpincode').value
+                                               },
+                                               ()=>{
 
-                <input type="text" placeholder="id" onChange={(e)=>{
-                    this.onIdChange(e)
-                }}></input><br/>
-                <input type="text" placeholder="password" onChange={(e)=>{
-                    this.onIdChange(e)
-                }}></input>
-                <br/>
-                <button onClick={this.submit} disabled={this.state.id ? this.state.password ? false : true : true } >Login</button>
+                                                   this.submit(e);
+                                               });
+                                       }}/>
+                            </div>
+                        </form>
+                        <Alert stack={{limit: 3}} html={true} />
+                    </div>
 
-                <Modal isOpen={this.state.ModalState} onRequestClose={this.toggleChange}>
-                    <h1>Register Here..!!</h1>
-                    <button onClick={this.toggleChange} style={{position:"absolute" , top:"0px" , right:"0px"}}>Close</button>
-                </Modal>
+                </fieldset>
 
-                <Alert stack={{limit: 3}} html={true} />
-            </div>
+
+            </section>
         )
     }
 }
-ReactDOM.render(<div><Main /><Footer /></div>, document.getElementById('root'))
-
+export default Logins;
